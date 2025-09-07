@@ -1,4 +1,4 @@
-# Mario Golf 64 Ground Editor V1.0.0
+# Mario Golf 64 Ground Editor v1.0.0
 
 Mario Golf 64 Fixed-sized PNG pixel editor built in python (PySide6) with a fixed color palette representing ground types in Mario Golf 64.
 
