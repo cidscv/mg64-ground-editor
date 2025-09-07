@@ -86,7 +86,7 @@ python -m mg64_ground_editor
 
 **e.g.**
 
-![example](Resources\example_hole.png)
+![example](Resources/example_hole.png)
 
 ### 4) Save to .png
 
