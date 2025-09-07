@@ -31,7 +31,7 @@ Mario Golf 64 Fixed-sized PNG pixel editor built in python (PySide6) with a fixe
 | 8         | Tee Ground    | #75FF9C          |
 | 9         | Rock          | #533131          |
 
-(Reference)[https://hack64.net/wiki/doku.php?id=mario_golf:hole_components]
+[Reference](https://hack64.net/wiki/doku.php?id=mario_golf:hole_components)
 
 ## Project Layout
 
