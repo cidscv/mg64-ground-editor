@@ -84,6 +84,10 @@ python -m mg64_ground_editor
 
 ### 3) Create Ground for Course
 
+**e.g.**
+
+![example](Resources\example_hole.png)
+
 ### 4) Save to .png
 
 ### 5) Use MG64HoleEditor by DeathBasket and convert .png to .att
