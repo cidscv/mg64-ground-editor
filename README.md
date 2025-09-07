@@ -79,7 +79,7 @@ pip install -r requirements.txt
 ### 2) Run
 
 ```bash
-python -m png_palette_editor
+python -m mg64_ground_editor
 ```
 
 ### 3) Create Ground for Course
