@@ -1,12 +1,41 @@
 import sys
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPainter, QColor, QAction
-from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton, QButtonGroup, QSizePolicy, QLabel
+from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QHBoxLayout, QVBoxLayout, QPushButton, QButtonGroup, QSizePolicy, QLabel, QMessageBox
 
-PALETTE_HEX = ["#A7CC75", "#446530", "#F2EFDB", "#936253", "#2F3E34", "#78FB4D", "#041810", "#75FF9C", "#533131"]
-PALLET_NAME = ["Fairway", "Rough", "Bunker", "Bare Ground", "Deep Rough", "Green", "OB", "Tee Ground", "Rock"]
+PALETTE_HEX = ["#A7CC75", "#446530", "#F2EFDB", "#936253", "#2F3E34", "#78FB4D", "#041810", "#75FF9C", "#533131", "#131AA5"]
+PALLET_NAME = ["Fairway", "Rough", "Bunker", "Bare Ground", "Deep Rough", "Green", "OB", "Tee Ground", "Rock", "Cartway"]
+GROUND_ID_TO_HEX = {
+    0x00: "#A7CC75",  # Fairway
+    0x01: "#446530",  # Rough
+    0x02: "#F2EFDB",  # Bunker
+    0x03: "#936253",  # Bare Ground
+    0x04: "#131AA5",  # Cartway
+    0x05: "#2F3E34",  # Deep Rough
+    0x06: "#78FB4D",  # Green
+    0x07: "#041810",  # Out of Bounds
+    0x08: "#75FF9C",  # Tee Ground
+    0x09: "#533131",  # Rock
+}
 CANVAS_W, CANVAS_H = 256, 512
 DISPLAY_SCALE = 2
+
+COLOR_TO_ID = {
+    (QColor(h).red()<<16) | (QColor(h).green()<<8) | QColor(h).blue(): gid
+    for gid, h in GROUND_ID_TO_HEX.items()
+}
+
+ERASE_FALLBACK_ID = 0x07
+
+def _nearest_id_from_rgb(r: int, g: int, b: int) -> int:
+    best_gid, best_d = None, 1e18
+    for gid, hx in GROUND_ID_TO_HEX.items():
+        qc = QColor(hx)
+        dr, dg, db = r - qc.red(), g - qc.green(), b - qc.blue()
+        d = dr*dr + dg*dg + db*db
+        if d < best_d:
+            best_d, best_gid = d, gid
+    return best_gid
 
 def nearest_palette_color(c: QColor) -> QColor:
     # Euclidean in RGB
@@ -156,11 +185,14 @@ class Main(QMainWindow):
         self.setCentralWidget(w)
 
         # file menu
+        export_att_act = QAction("Export .att…", self)
+        export_att_act.triggered.connect(self.export_att)
         new_act = QAction("New", self); new_act.triggered.connect(self.new_image)
         open_act = QAction("Open…", self); open_act.triggered.connect(self.open_image)
         save_act = QAction("Save…", self); save_act.triggered.connect(self.save_image)
         m = self.menuBar().addMenu("File")
         m.addAction(new_act); m.addAction(open_act); m.addAction(save_act)
+        m.addAction(export_att_act)  # add to your File menu after Save
 
         # set canvas to fixed size to avoid scaling issues
         self.canvas.setFixedSize(CANVAS_W*DISPLAY_SCALE, CANVAS_H*DISPLAY_SCALE)
@@ -209,6 +241,49 @@ class Main(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(self, "Save PNG", filter="PNG Images (*.png)")
         if not path: return
         self.canvas.image.save(path, "PNG")
+    
+    def export_att(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Export Attribute Map (.att)",
+                                            filter="Attribute Maps (*.att)")
+        if not path:
+            return
+
+        img = self.canvas.image   # QImage, 256x512 ARGB32
+        if img.width() != 256 or img.height() != 512:
+            QMessageBox.critical(self, "Wrong size", "Canvas must be exactly 256x512.")
+            return
+
+        buf = bytearray(256 * 512)
+        i = 0
+        off_palette_count = 0
+
+        for y in range(512):
+            for x in range(256):
+                c = img.pixelColor(x, y)
+                if c.alpha() == 0:
+                    gid = ERASE_FALLBACK_ID
+                else:
+                    key = (c.red()<<16) | (c.green()<<8) | c.blue()
+                    gid = COLOR_TO_ID.get(key)
+                    if gid is None:
+                        gid = _nearest_id_from_rgb(c.red(), c.green(), c.blue())
+                        off_palette_count += 1
+                buf[i] = gid & 0xFF
+                i += 1
+
+        try:
+            with open(path, "wb") as f:
+                f.write(buf)  # 131,072 bytes
+        except OSError as e:
+            QMessageBox.critical(self, "Write failed", str(e))
+            return
+
+        if off_palette_count:
+            QMessageBox.information(
+                self, "Exported with coercion",
+                f"Exported .att to {path}\n"
+                f"Note: {off_palette_count} pixels were off-palette and were mapped to the nearest ground ID."
+            )
 
 def main():
     app = QApplication(sys.argv)

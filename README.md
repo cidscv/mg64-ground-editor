@@ -6,7 +6,7 @@ Mario Golf 64 Fixed-sized PNG pixel editor built in python (PySide6) with a fixe
 - Default Canvas colour is OB (#041810)
 - Tools: draw, erase, 5 rectangle brush sizes, pixel grid toggle
 - Palette: fixed set of HEX colors with tooltips which match corresponding ground types in Mario Golf (see Ground Type Map)
-- Files: New / Open / Save (PNG)
+- Files: New / Open / Save (PNG) / Export to .att
 
 ---
 
@@ -25,7 +25,7 @@ Mario Golf 64 Fixed-sized PNG pixel editor built in python (PySide6) with a fixe
 | 1         | Rough         | #446530          |
 | 2         | Bunker        | #F2EFDB          |
 | 3         | Bare Ground   | #936253          |
-| 4         | Cart Way      | ???              |
+| 4         | Cart Way      | #131AA5          |
 | 5         | Deep Rough    | #2F3E34          |
 | 6         | Green         | #78FB4D          |
 | 7         | Out of Bounds | #041810          |
@@ -88,11 +88,10 @@ python -m mg64_ground_editor
 
 ![example](Resources/example_hole.png)
 
-### 4) Save to .png
+### 4) Save to .png to continue working on later or export to .att to use in Mario Golf
 
-### 5) Use MG64HoleEditor by DeathBasket and convert .png to .att
+### 5) Use MG64HoleEditor by DeathBasket to insert the exported .att file
 
 ## Planned Features
 
 - Improve editor (fill bucket, shapes)
-- Add ability to export to .att directly
